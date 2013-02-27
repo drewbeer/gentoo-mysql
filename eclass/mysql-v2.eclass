@@ -126,6 +126,19 @@ if [ -z "${SERVER_URI}" ]; then
 		http://mirrors.fe.up.pt/pub/${PN}/${MARIA_FULL_P}/kvm-tarbake-jaunty-x86/${MARIA_FULL_P}.tar.gz
 		http://ftp-stud.hs-esslingen.de/pub/Mirrors/${PN}/${MARIA_FULL_P}/kvm-tarbake-jaunty-x86/${MARIA_FULL_P}.tar.gz
 		"
+	elif [ "${PN}" == "mariadb-galera" ]; then
+		MARIA_FULL_PV="$(replace_version_separator 3 '-' ${MY_PV})"
+		GALERA_FULL_P="${PN}-${MARIA_FULL_PV}"
+		MARIA_FULL_P="${PN%%-galera}-${MARIA_FULL_PV}"
+		SERVER_URI="
+		http://ftp.osuosl.org/pub/mariadb/${GALERA_FULL_P}/kvm-tarbake-jaunty-x86/${MARIA_FULL_P}.tar.gz -> ${GALERA_FULL_P}.tar.gz
+		http://ftp.rediris.es/mirror/MariaDB/${GALERA_FULL_P}/kvm-tarbake-jaunty-x86/${MARIA_FULL_P}.tar.gz -> ${GALERA_FULL_P}.tar.gz
+		http://maria.llarian.net/download/${GALERA_FULL_P}/kvm-tarbake-jaunty-x86/${MARIA_FULL_P}.tar.gz -> ${GALERA_FULL_P}.tar.gz
+		http://mirrors.fe.up.pt/pub/${PN}/${GALERA_FULL_P}/kvm-tarbake-jaunty-x86/${MARIA_FULL_P}.tar.gz -> ${GALERA_FULL_P}.tar.gz
+		http://ftp-stud.hs-esslingen.de/pub/Mirrors/${PN}/${GALERA_FULL_P}/kvm-tarbake-jaunty-x86/${MARIA_FULL_P}.tar.gz -> ${GALERA_FULL_P}.tar.gz
+		"
+#                MY_SOURCEDIR=${SERVER_URI##*/}
+                MY_SOURCEDIR=${MARIA_FULL_P}
 	else
 		URI_DIR="MySQL"
 		URI_FILE="mysql"
