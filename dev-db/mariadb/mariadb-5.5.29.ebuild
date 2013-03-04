@@ -32,7 +32,7 @@ src_prepare() {
 }
 
 # Official test instructions:
-# USE='berkdb -cluster embedded extraengine perl ssl community' \
+# USE='-cluster embedded extraengine perl ssl community' \
 # FEATURES='test userpriv -usersandbox' \
 # ebuild mariadb-X.X.XX.ebuild \
 # digest clean package

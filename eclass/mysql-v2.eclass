@@ -53,7 +53,7 @@ inherit eutils flag-o-matic gnuconfig ${MYSQL_EXTRAS} ${BUILD_INHERIT} mysql_fx 
 #
 
 case "${EAPI:-0}" in
-	3|4|5) ;;
+	4|5) ;;
 	*) die "Unsupported EAPI: ${EAPI}" ;;
 esac
 
@@ -162,7 +162,9 @@ case "${BUILD}" in
 		IUSE="big-tables debug embedded minimal +perl selinux ssl static test"
 		;;
 	"cmake")
-		IUSE="debug embedded minimal +perl selinux ssl static test"
+		IUSE="debug embedded minimal +perl selinux static test"
+		#SSL is required in 5.6+ Bug #459568
+		mysql_version_is_at_least "5.6" || IUSE="${IUSE} ssl"
 		;;
 esac
 
@@ -172,7 +174,6 @@ IUSE="${IUSE} extraengine"
 IUSE="${IUSE} cluster"
 
 IUSE="${IUSE} max-idx-128"
-IUSE="${IUSE} berkdb"
 IUSE="${IUSE} +community profiling"
 
 [[ ${PN} == "mariadb" ]] \
@@ -196,7 +197,9 @@ if mysql_version_is_at_least "5.5"; then
 	IUSE="${IUSE} jemalloc tcmalloc"
 fi
 
-REQUIRED_USE="${REQUIRED_USE} minimal? ( !cluster !extraengine !embedded ) static? ( !ssl )"
+REQUIRED_USE="${REQUIRED_USE} minimal? ( !cluster !extraengine !embedded )"
+
+mysql_version_is_at_least "5.6" || REQUIRED_USE="${REQUIRED_USE} static? ( !ssl )"
 
 mysql_version_is_at_least "5.5.7" \
 && IUSE="${IUSE} systemtap"
@@ -208,13 +211,18 @@ mysql_version_is_at_least "5.5.7" \
 # Be warned, *DEPEND are version-dependant
 # These are used for both runtime and compiletime
 DEPEND="
-	ssl? ( >=dev-libs/openssl-0.9.6d )
 	kernel_linux? ( sys-process/procps )
 	>=sys-apps/sed-4
 	>=sys-apps/texinfo-4.7-r1
 	>=sys-libs/readline-4.1
 	>=sys-libs/zlib-1.2.3
 "
+
+if mysql_version_is_at_least "5.6" ; then
+	DEPEND="${DEPEND} >=dev-libs/openssl-1.0.0"
+else
+	DEPEND="${DEPEND} ssl? ( >=dev-libs/openssl-0.9.6d )"
+fi
 
 [[ ${PN} == mariadb ]] \
 && mysql_check_version_range "5.1.38 to 5.3.99" \
@@ -536,10 +544,6 @@ mysql-v2_pkg_postinst() {
 		elog "      PRIMARY KEY (name)"
 		elog "    ) CHARACTER SET utf8 COLLATE utf8_bin;"
 	fi
-
-	mysql_check_version_range "4.0 to 5.0.99.99" \
-	&& use berkdb \
-	&& elog "Berkeley DB support is deprecated and will be removed in future versions!"
 }
 
 # @FUNCTION: mysql-v2_getopt
@@ -674,7 +678,7 @@ mysql-v2_pkg_config() {
 	# Figure out which options we need to disable to do the setup
 	helpfile="${TMPDIR}/mysqld-help"
 	${EROOT}/usr/sbin/mysqld --verbose --help >"${helpfile}" 2>/dev/null
-	for opt in grant-tables host-cache name-resolve networking slave-start bdb \
+	for opt in grant-tables host-cache name-resolve networking slave-start \
 		federated innodb ssl log-bin relay-log slow-query-log external-locking \
 		ndbcluster log-slave-updates \
 		; do

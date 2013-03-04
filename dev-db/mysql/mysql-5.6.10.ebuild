@@ -1,6 +1,6 @@
 # Copyright 1999-2013 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/dev-db/mysql/mysql-5.5.1_alpha_pre2.ebuild,v 1.8 2010/04/01 20:41:21 robbat2 Exp $
+# $Header: $
 
 EAPI="4"
 
@@ -32,7 +32,7 @@ RDEPEND="${RDEPEND}"
 # and create your own mysql-extras tarball, looking at 000_index.txt
 
 # Official test instructions:
-# USE='berkdb -cluster embedded extraengine perl ssl community' \
+# USE='-cluster embedded extraengine perl community' \
 # FEATURES='test userpriv -usersandbox' \
 # ebuild mysql-X.X.XX.ebuild \
 # digest clean package
@@ -71,7 +71,9 @@ src_test() {
 		# false positives:
 		#
 		# main.information_schema, binlog.binlog_statement_insert_delayed,
-		# main.mysqld--help-notwin
+		# main.mysqld--help-notwin, binlog.binlog_mysqlbinlog_filter,
+		# perfschema.binlog_edge_mix perfschema.binlog_edge_stmt,
+		# funcs_1.is_columns_mysql funcs_1.is_tables_mysql funcs_1.is_triggers
 		# fails due to USE=-latin1 / utf8 default
 		#
 		# main.mysql_client_test:
@@ -83,10 +85,23 @@ src_test() {
 		#
 		# main.flush_read_lock_kill
 		# fails because of unknown system variable 'DEBUG_SYNC'
+		#
+		# main.openssl_1
+		# error message changing
+		# -mysqltest: Could not open connection 'default': 2026 SSL connection
+		#  error: ASN: bad other signature confirmation
+		# +mysqltest: Could not open connection 'default': 2026 SSL connection
+		#  error: error:00000001:lib(0):func(0):reason(1)
+		#
+
 		for t in main.mysql_client_test \
 			binlog.binlog_statement_insert_delayed main.information_schema \
-			main.mysqld--help-notwin; do
-				mysql_disable_test  "$t" "False positives in Gentoo"
+			main.mysqld--help-notwin main.flush_read_lock_kill \
+			binlog.binlog_mysqlbinlog_filter perfschema.binlog_edge_mix \
+			perfschema.binlog_edge_stmt funcs_1.is_columns_mysql \
+			funcs_1.is_tables_mysql funcs_1.is_triggers \
+			sys_vars.plugin_dir_basic main.openssl_1 ; do
+				mysql-v2_disable_test  "$t" "False positives in Gentoo"
 		done
 
 		# Run mysql tests

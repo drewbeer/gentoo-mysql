@@ -148,10 +148,14 @@ configure_cmake_standard() {
 		$(cmake-utils_use_enable systemtap DTRACE)
 	)
 
-	if use ssl; then
+	if mysql_version_is_at_least "5.6" ; then
 		mycmakeargs+=( -DWITH_SSL=system )
 	else
-		mycmakeargs+=( -DWITH_SSL=0 )
+		if use ssl; then
+			mycmakeargs+=( -DWITH_SSL=system )
+		else
+			mycmakeargs+=( -DWITH_SSL=0 )
+		fi
 	fi
 
 	if mysql_version_is_at_least "5.5" && use jemalloc; then
