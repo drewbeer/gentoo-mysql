@@ -183,7 +183,7 @@ configure_cmake_standard() {
 		mycmakeargs+=( $(cmake-utils_use_with pbxt PBXT_STORAGE_ENGINE) )
 	fi
 
-	if [ "${PN}" == "mariadb" ]; then
+	if [ "${PN}" == "mariadb" ] || [ "${PN}" == "mariadb-galera" ]; then
 		mycmakeargs+=(
 			$(cmake-utils_use_with oqgraph OQGRAPH_STORAGE_ENGINE)
 			$(cmake-utils_use_with sphinx SPHINX_STORAGE_ENGINE)
@@ -263,7 +263,7 @@ mysql-cmake_src_configure() {
 	# Bug 412851
 	# MariaDB requires this flag to compile with GPLv3 readline linked
 	# Adds a warning about redistribution to configure
-	if [[ "${PN}" == "mariadb" ]] ; then
+	if [[ "${PN}" == "mariadb" ]]  || [ "${PN}" == "mariadb-galera" ] ; then
 		mycmakeargs+=( -DNOT_FOR_DISTRIBUTION=1 )
 	fi
 
@@ -403,6 +403,6 @@ mysql-cmake_src_install() {
 	mysql_lib_symlinks "${ED}"
 
 	#Remove mytop if perl is not selected
-	[[ "${PN}" == "mariadb" ]] && ! use perl \
+	([[ "${PN}" == "mariadb" ]] || [[ "${PN}" == "mariadb-galera" ]]) && ! use perl \
 	&& rm -f "${ED}/usr/bin/mytop"
 }
